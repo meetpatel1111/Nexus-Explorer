@@ -16,7 +16,7 @@
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "postbuild": "node scripts/copy-electron.js",
-    "build:win": "npm run build && npx electron-builder --win",
+    "build:win": "npm run build && npx electron-builder --win --publish never",
     "dev": "concurrently \"cross-env BROWSER=none craco start\" \"wait-on http://localhost:3000 && electron . --dev\"",
     "start:react": "npx craco start",
     "build:linux": "npx craco build && npx electron-builder --linux"
