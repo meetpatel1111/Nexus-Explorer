@@ -22,7 +22,7 @@
     "build:linux": "npx craco build && electron-builder --linux",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "if not exist build (echo Skipping electron-builder install-app-deps) else (electron-builder install-app-deps)"
   },
   "keywords": [
     "file-explorer",
