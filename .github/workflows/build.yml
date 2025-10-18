@@ -72,18 +72,38 @@ jobs:
       run: |
         # Ensure build directory exists before packaging
         New-Item -ItemType Directory -Force -Path "build" | Out-Null
+        
+        # Run the build
         npm run build:win
-        Get-ChildItem -Path "dist" -Recurse | Format-Table FullName,Length,LastWriteTime
+        
+        # Verify dist directory contents
+        Write-Output "Dist directory contents:"
+        Get-ChildItem -Path "dist" -Recurse -Force | Format-Table FullName,Length,LastWriteTime
+        
+        # Check for specific files
+        Write-Output "Checking for installer files..."
+        $installerFiles = Get-ChildItem -Path "dist" -Include "*.exe","*.exe.blockmap","*.yml" -Recurse -ErrorAction SilentlyContinue
+        if ($installerFiles) {
+            Write-Output "Found installer files:"
+            $installerFiles | Format-Table FullName,Length,LastWriteTime
+        } else {
+            Write-Output "No installer files found in dist directory"
+            Get-ChildItem -Path "dist" -Recurse -Force | Format-Table FullName,Length,LastWriteTime
+        }
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
+      if: success() || failure()
       with:
         name: NexusExplorer-Installer
         path: |
-          dist/*.exe
-          dist/*.exe.blockmap
-          dist/*.yml
+          dist\**\*.exe
+          dist\**\*.exe.blockmap
+          dist\**\*.yml
+          dist\**\*.exe.blockmap
+          dist\**\latest.yml
         retention-days: 1
+        if-no-files-found: warn
 
     - name: Create Release
       id: create_release
