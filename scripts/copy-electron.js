@@ -38,17 +38,7 @@ try {
     description: packageJson.description || 'Nexus Explorer',
     author: packageJson.author || 'Nexus Team',
     main: 'electron.js',
-    dependencies: packageJson.dependencies || {},
-    build: {
-      appId: (packageJson.build && packageJson.build.appId) || 'com.nexus.explorer',
-      productName: (packageJson.build && packageJson.build.productName) || 'Nexus Explorer',
-      files: [
-        '**/*',
-        '!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}',
-        '!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}',
-        '!**/*.o'
-      ]
-    }
+    dependencies: packageJson.dependencies || {}
   };
 
   const packageJsonPath = path.join(buildDir, 'package.json');
