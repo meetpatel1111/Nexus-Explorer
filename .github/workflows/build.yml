@@ -29,6 +29,8 @@ jobs:
 
     - name: Build application
       run: |
+        # Create build directory if it doesn't exist
+        mkdir -p build
         npm run build
         node scripts/copy-electron.js
 
@@ -44,6 +46,8 @@ jobs:
 
     - name: Package application
       run: |
+        # Ensure build directory exists before packaging
+        mkdir -p build
         npm run build:win
         ls -la dist/
 

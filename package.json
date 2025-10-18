@@ -10,19 +10,19 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "mkdir -p build && craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "postbuild": "node scripts/copy-electron.js",
-    "build:win": "electron-builder --win --publish never",
+    "build:win": "mkdir -p build && electron-builder --win --publish never",
     "dev": "concurrently \"cross-env BROWSER=none craco start\" \"wait-on http://localhost:3000 && electron . --dev\"",
     "start:react": "npx craco start",
     "build:linux": "npx craco build && electron-builder --linux",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
-    "postinstall": "if not exist build (echo Skipping electron-builder install-app-deps) else (electron-builder install-app-deps)"
+    "postinstall": "echo Running postinstall... && electron-builder install-app-deps"
   },
   "keywords": [
     "file-explorer",
