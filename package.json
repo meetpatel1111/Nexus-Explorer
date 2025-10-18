@@ -69,11 +69,11 @@
     "copyright": "Copyright © 2025 Nexus Explorer",
     "directories": {
       "output": "dist",
-      "buildResources": ".",
-      "app": "."
+      "buildResources": "public",
+      "app": "build"
     },
     "files": [
-      "build/**/*",
+      "**/*",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
       "!**/*.o"
@@ -81,7 +81,7 @@
     "extraResources": [
       {
         "from": "public/electron.js",
-        "to": "."
+        "to": "../"
       }
     ],
     "win": {

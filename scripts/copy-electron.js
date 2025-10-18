@@ -23,43 +23,28 @@ if (!fs.existsSync(electronSrc)) {
 console.log(`Copying ${electronSrc} to ${electronDest}`);
 
 try {
-  // Create main directory structure
-  const appDir = path.join(buildDir, 'app');
-  fs.ensureDirSync(appDir);
-  
-  // Copy electron.js to the root of the build directory
-  fs.copyFileSync(electronSrc, path.join(buildDir, 'electron.js'));
-  
-  // Create package.json in the app directory
+  // Copy electron.js to build directory
+  fs.copyFileSync(electronSrc, electronDest);
+  console.log('Successfully copied electron.js to build directory');
+
+  // Create package.json in build directory
+  console.log('Creating package.json in build directory...');
   const packageJson = require('../package.json');
   
+  // Create minimal package.json for production
   const newPackageJson = {
     name: packageJson.name,
     version: packageJson.version,
     description: packageJson.description || 'Nexus Explorer',
     author: packageJson.author || 'Nexus Team',
-    main: '../electron.js',
+    main: './electron.js',
     dependencies: packageJson.dependencies || {}
   };
 
-  const packageJsonPath = path.join(appDir, 'package.json');
+  const packageJsonPath = path.join(buildDir, 'package.json');
   fs.writeFileSync(packageJsonPath, JSON.stringify(newPackageJson, null, 2));
+  console.log(`Created package.json at ${packageJsonPath}`);
   
-  // Move all build files to the app directory
-  fs.readdirSync(buildDir).forEach(file => {
-    if (file !== 'app' && file !== 'electron.js') {
-      const srcPath = path.join(buildDir, file);
-      const destPath = path.join(appDir, file);
-      
-      if (fs.lstatSync(srcPath).isDirectory()) {
-        fs.moveSync(srcPath, destPath, { overwrite: true });
-      } else if (file !== 'package.json') {
-        fs.copyFileSync(srcPath, destPath);
-      }
-    }
-  });
-  
-  console.log('Successfully prepared Electron application structure');
   console.log('Electron files prepared successfully!');
 } catch (error) {
   console.error('Error preparing Electron files:', error);
