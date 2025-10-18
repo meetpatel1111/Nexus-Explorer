@@ -23,105 +23,22 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: |
-        npm ci --ignore-scripts
-        npx electron-builder install-app-deps
+      run: npm ci
 
     - name: Build application
-      run: |
-        # Clean and recreate build directory
-        if (Test-Path -Path "build") {
-          Remove-Item -Recurse -Force build
-        }
-        New-Item -ItemType Directory -Force -Path "build" | Out-Null
-        
-        # Build React app
-        npm run build
-        
-        # Verify build output
-        Write-Output "Build directory contents after React build:"
-        Get-ChildItem -Path "build" -Recurse | Format-Table FullName,Length,LastWriteTime
-        
-        # Copy Electron files
-        node scripts/copy-electron.js
-        
-        Write-Output "Build directory contents after copy-electron.js:"
-        Get-ChildItem -Path "build" -Recurse | Format-Table FullName,Length,LastWriteTime
-
-    - name: Verify build files
-      run: |
-        Write-Output "Final build directory structure:"
-        Get-ChildItem -Path "build" -Recurse -File | Format-Table FullName,Length,LastWriteTime
-        
-        # Verify electron.js exists
-        if (-not (Test-Path -Path "build/electron.js" -PathType Leaf)) {
-          Write-Error "ERROR: electron.js not found in build directory!"
-          exit 1
-        }
-        
-        # Verify package.json exists
-        if (-not (Test-Path -Path "build/package.json" -PathType Leaf)) {
-          Write-Error "ERROR: package.json not found in build directory!"
-          exit 1
-        }
-
-    - name: Install electron-builder globally
-      run: npm install -g electron-builder
+      run: npm run build
 
     - name: Package application
-      run: |
-        # Ensure build directory exists before packaging
-        New-Item -ItemType Directory -Force -Path "build" | Out-Null
-        
-        # Run the build with more detailed output
-        $ErrorActionPreference = 'Stop'
-        try {
-            npm run build:win --verbose
-        } catch {
-            Write-Error "Build failed with error: $_"
-            # List all files in the project root to help with debugging
-            Write-Output "Project root contents:"
-            Get-ChildItem -Path . -Recurse -Depth 2 | Format-Table FullName,Length,LastWriteTime
-            exit 1
-        }
-        
-        # Verify dist directory contents
-        Write-Output "Dist directory contents:"
-        $distPath = "dist/win"
-        if (Test-Path -Path $distPath) {
-            Get-ChildItem -Path $distPath -Recurse -Force | Format-Table FullName,Length,LastWriteTime
-            
-            # Check for specific files
-            Write-Output "Checking for installer files..."
-            $installerFiles = Get-ChildItem -Path $distPath -Include "*.exe","*.exe.blockmap","*.yml" -Recurse -ErrorAction SilentlyContinue
-            if ($installerFiles) {
-                Write-Output "Found installer files:"
-                $installerFiles | Format-Table FullName,Length,LastWriteTime
-            } else {
-                Write-Error "No installer files found in $distPath"
-                # List all files in the dist directory for debugging
-                Get-ChildItem -Path "dist" -Recurse -Force | Format-Table FullName,Length,LastWriteTime
-                exit 1
-            }
-        } else {
-            Write-Error "Dist directory not found at: $distPath"
-            # List all files in the project root to help with debugging
-            Get-ChildItem -Path . -Recurse -Depth 2 | Format-Table FullName,Length,LastWriteTime
-            exit 1
-        }
+      run: npm run build:win
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
-      if: always()
       with:
         name: NexusExplorer-Installer
         path: |
-          dist/win/*.exe
-          dist/win/*.exe.blockmap
-          dist/win/*.yml
-          dist/win/*.blockmap
-          dist/win/latest.yml
-        if-no-files-found: error
+          dist/*.exe
+          dist/*.exe.blockmap
+          dist/*.yml
         retention-days: 1
 
     - name: Create Release
