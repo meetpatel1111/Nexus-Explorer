@@ -70,45 +70,28 @@
     "directories": {
       "output": "dist",
       "buildResources": "public",
-      "app": "build"
+      "app": "."
     },
     "files": [
       "build/**/*",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!**/*.o"
+      "public/electron.js",
+      "package.json"
     ],
     "extraResources": [
       {
-        "from": "public",
-        "to": ".",
-        "filter": ["**/*"]
-      },
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": ["**/*"]
+        "from": "public/electron.js",
+        "to": "../"
       }
     ],
-    "asar": true,
     "win": {
-      "target": [
-        "nsis",
-        "portable"
-      ],
-      "icon": "build/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "Utility",
-      "icon": "build/icon.png"
+      "target": "nsis",
+      "icon": "public/icon.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   },
   "browserslist": {
