@@ -29,17 +29,41 @@ jobs:
 
     - name: Build application
       run: |
-        # Create build directory if it doesn't exist
+        # Clean and recreate build directory
+        if [ -d "build" ]; then
+          rm -rf build
+        fi
         mkdir -p build
+        
+        # Build React app
         npm run build
+        
+        # Verify build output
+        echo "Build directory contents after React build:"
+        ls -la build/
+        
+        # Copy Electron files
         node scripts/copy-electron.js
+        
+        echo "Build directory contents after copy-electron.js:"
+        ls -la build/
 
     - name: Verify build files
       run: |
-        echo "Build directory contents:"
-        ls -la build/
-        echo "Public directory contents:"
-        ls -la public/
+        echo "Final build directory structure:"
+        find build/ -type f -print | sort
+        
+        # Verify electron.js exists
+        if [ ! -f "build/electron.js" ]; then
+          echo "ERROR: electron.js not found in build directory!"
+          exit 1
+        fi
+        
+        # Verify package.json exists
+        if [ ! -f "build/package.json" ]; then
+          echo "ERROR: package.json not found in build directory!"
+          exit 1
+        fi
 
     - name: Install electron-builder globally
       run: npm install -g electron-builder

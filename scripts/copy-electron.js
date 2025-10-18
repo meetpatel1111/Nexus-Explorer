@@ -4,31 +4,39 @@ const path = require('path');
 console.log('Starting electron file copy process...');
 
 // Ensure build directory exists
-const buildDir = path.join(__dirname, '../build');
-if (!fs.existsSync(buildDir)) {
-  console.error('Build directory not found. Run `npm run build` first.');
-  process.exit(1);
-}
+const buildDir = path.resolve(__dirname, '..', 'build');
+const publicDir = path.join(buildDir, 'public');
+
+console.log(`Build directory: ${buildDir}`);
+
+// Create build and public directories if they don't exist
+fs.ensureDirSync(buildDir);
+fs.ensureDirSync(publicDir);
 
 // Paths
-const electronSrc = path.join(__dirname, '../public/electron.js');
+const electronSrc = path.resolve(__dirname, '..', 'public', 'electron.js');
 const electronDest = path.join(buildDir, 'electron.js');
+
+console.log(`Source electron.js path: ${electronSrc}`);
+console.log(`Destination electron.js path: ${electronDest}`);
 
 // Ensure source file exists
 if (!fs.existsSync(electronSrc)) {
   console.error(`Error: Source file not found at ${electronSrc}`);
+  console.log('Current working directory:', process.cwd());
+  console.log('Directory contents:', fs.readdirSync(path.dirname(electronSrc)));
   process.exit(1);
 }
 
 console.log(`Copying ${electronSrc} to ${electronDest}`);
 
 try {
-  // 1. Copy electron.js to build directory
+  // Copy electron.js to build directory
   fs.copyFileSync(electronSrc, electronDest);
   console.log('Successfully copied electron.js to build directory');
 
-  // 2. Create package.json in build directory
-  console.log('Creating package.json in build directory...');
+  // Create package.json in build directory
+  console.log('Creating/updating package.json in build directory...');
   const packageJson = require('../package.json');
   
   const newPackageJson = {
@@ -36,40 +44,40 @@ try {
     version: packageJson.version,
     description: packageJson.description || 'Nexus Explorer',
     author: packageJson.author || 'Nexus Team',
-    main: 'electron.js',
+    main: './electron.js',  // Ensure relative path
     dependencies: packageJson.dependencies || {}
   };
 
   const packageJsonPath = path.join(buildDir, 'package.json');
   
-  // Read the existing package.json if it exists
-  if (fs.existsSync(packageJsonPath)) {
-    const existingPackage = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-    // Merge with existing package.json
-    Object.assign(existingPackage, newPackageJson);
-    fs.writeFileSync(packageJsonPath, JSON.stringify(existingPackage, null, 2));
-  } else {
-    fs.writeFileSync(packageJsonPath, JSON.stringify(newPackageJson, null, 2));
-  }
+  console.log(`Writing package.json to ${packageJsonPath}`);
+  fs.writeFileSync(packageJsonPath, JSON.stringify(newPackageJson, null, 2));
   
-  console.log(`Updated package.json at ${packageJsonPath}`);
+  console.log('Package.json contents:', JSON.stringify(newPackageJson, null, 2));
   
-  // 3. Ensure the public directory exists in build
-  const publicDir = path.join(buildDir, 'public');
-  if (!fs.existsSync(publicDir)) {
-    fs.mkdirSync(publicDir, { recursive: true });
-  }
+  // Copy all public files except electron.js
+  console.log('Copying public files...');
+  const publicSrc = path.resolve(__dirname, '..', 'public');
   
-  // 4. Copy icon file if it exists
-  const iconSrc = path.join(__dirname, '../public/icon.ico');
-  if (fs.existsSync(iconSrc)) {
-    const iconDest = path.join(publicDir, 'icon.ico');
-    fs.copyFileSync(iconSrc, iconDest);
-    console.log('Copied icon.ico to build directory');
-  }
+  fs.readdirSync(publicSrc)
+    .filter(file => file !== 'electron.js')
+    .forEach(file => {
+      const src = path.join(publicSrc, file);
+      const dest = path.join(publicDir, file);
+      console.log(`Copying ${src} to ${dest}`);
+      if (fs.lstatSync(src).isDirectory()) {
+        fs.copySync(src, dest);
+      } else {
+        fs.copyFileSync(src, dest);
+      }
+    });
   
   console.log('Electron files prepared successfully!');
+  console.log('Final build directory contents:');
+  console.log(fs.readdirSync(buildDir));
+  
 } catch (error) {
   console.error('Error preparing Electron files:', error);
+  console.error('Error stack:', error.stack);
   process.exit(1);
 }
