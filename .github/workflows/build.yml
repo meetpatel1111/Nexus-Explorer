@@ -30,40 +30,40 @@ jobs:
     - name: Build application
       run: |
         # Clean and recreate build directory
-        if [ -d "build" ]; then
-          rm -rf build
-        fi
-        mkdir -p build
+        if (Test-Path -Path "build") {
+          Remove-Item -Recurse -Force build
+        }
+        New-Item -ItemType Directory -Force -Path "build" | Out-Null
         
         # Build React app
         npm run build
         
         # Verify build output
-        echo "Build directory contents after React build:"
-        ls -la build/
+        Write-Output "Build directory contents after React build:"
+        Get-ChildItem -Path "build" -Recurse | Format-Table FullName,Length,LastWriteTime
         
         # Copy Electron files
         node scripts/copy-electron.js
         
-        echo "Build directory contents after copy-electron.js:"
-        ls -la build/
+        Write-Output "Build directory contents after copy-electron.js:"
+        Get-ChildItem -Path "build" -Recurse | Format-Table FullName,Length,LastWriteTime
 
     - name: Verify build files
       run: |
-        echo "Final build directory structure:"
-        find build/ -type f -print | sort
+        Write-Output "Final build directory structure:"
+        Get-ChildItem -Path "build" -Recurse -File | Format-Table FullName,Length,LastWriteTime
         
         # Verify electron.js exists
-        if [ ! -f "build/electron.js" ]; then
-          echo "ERROR: electron.js not found in build directory!"
+        if (-not (Test-Path -Path "build/electron.js" -PathType Leaf)) {
+          Write-Error "ERROR: electron.js not found in build directory!"
           exit 1
-        fi
+        }
         
         # Verify package.json exists
-        if [ ! -f "build/package.json" ]; then
-          echo "ERROR: package.json not found in build directory!"
+        if (-not (Test-Path -Path "build/package.json" -PathType Leaf)) {
+          Write-Error "ERROR: package.json not found in build directory!"
           exit 1
-        fi
+        }
 
     - name: Install electron-builder globally
       run: npm install -g electron-builder
@@ -71,9 +71,9 @@ jobs:
     - name: Package application
       run: |
         # Ensure build directory exists before packaging
-        mkdir -p build
+        New-Item -ItemType Directory -Force -Path "build" | Out-Null
         npm run build:win
-        ls -la dist/
+        Get-ChildItem -Path "dist" -Recurse | Format-Table FullName,Length,LastWriteTime
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
