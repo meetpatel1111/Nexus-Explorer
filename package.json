@@ -2,7 +2,7 @@
   "name": "nexus-explorer",
   "version": "0.1.0",
   "description": "A next-generation file explorer with AI capabilities",
-  "main": "public/electron.js",
+  "main": "build/electron.js",
   "browser": {
     "fs": false,
     "path": false,
@@ -73,26 +73,39 @@
       "app": "build"
     },
     "files": [
-      "**/*",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!**/*.o"
+      "build/**/*"
     ],
     "extraResources": [
       {
-        "from": "public/electron.js",
-        "to": "../"
+        "from": "public",
+        "to": "public",
+        "filter": ["**/*", "!electron.js"]
       }
     ],
+    "asar": true,
+    "extends": null,
     "win": {
       "target": "nsis",
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "extraResources": [
+        {
+          "from": "public/icon.ico",
+          "to": "icon.ico"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nexus Explorer"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "your-github-username",
+      "repo": "nexus-explorer"
     }
   },
   "browserslist": {
