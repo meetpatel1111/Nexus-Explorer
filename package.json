@@ -16,10 +16,13 @@
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "postbuild": "node scripts/copy-electron.js",
-    "build:win": "npm run build && npx electron-builder --win --publish never",
+    "build:win": "electron-builder --win --publish never",
     "dev": "concurrently \"cross-env BROWSER=none craco start\" \"wait-on http://localhost:3000 && electron . --dev\"",
     "start:react": "npx craco start",
-    "build:linux": "npx craco build && npx electron-builder --linux"
+    "build:linux": "npx craco build && electron-builder --linux",
+    "dist": "electron-builder",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "file-explorer",
@@ -73,7 +76,10 @@
       "app": "build"
     },
     "files": [
-      "build/**/*"
+      "build/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/*.o"
     ],
     "extraResources": [
       {
@@ -86,13 +92,7 @@
     "extends": null,
     "win": {
       "target": "nsis",
-      "icon": "public/icon.ico",
-      "extraResources": [
-        {
-          "from": "public/icon.ico",
-          "to": "icon.ico"
-        }
-      ]
+      "icon": "public/icon.ico"
     },
     "nsis": {
       "oneClick": false,

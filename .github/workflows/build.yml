@@ -26,10 +26,24 @@ jobs:
       run: npm ci
 
     - name: Build application
-      run: npm run build
+      run: |
+        npm run build
+        node scripts/copy-electron.js
+
+    - name: Verify build files
+      run: |
+        echo "Build directory contents:"
+        ls -la build/
+        echo "Public directory contents:"
+        ls -la public/
+
+    - name: Install electron-builder globally
+      run: npm install -g electron-builder
 
     - name: Package application
-      run: npm run build:win
+      run: |
+        npm run build:win
+        ls -la dist/
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4

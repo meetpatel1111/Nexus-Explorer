@@ -41,54 +41,33 @@ try {
   };
 
   const packageJsonPath = path.join(buildDir, 'package.json');
-  fs.writeFileSync(packageJsonPath, JSON.stringify(newPackageJson, null, 2));
-  console.log(`Created package.json at ${packageJsonPath}`);
-
-  // 3. Create a simple main.js in build directory
-  const mainJsPath = path.join(buildDir, 'main.js');
-  fs.writeFileSync(mainJsPath, `// Main process for Electron
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-
-function createWindow() {
-  // Create the browser window
-  const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true
-    }
-  });
-
-  // Load the index.html file
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
   
-  // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
+  // Read the existing package.json if it exists
+  if (fs.existsSync(packageJsonPath)) {
+    const existingPackage = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    // Merge with existing package.json
+    Object.assign(existingPackage, newPackageJson);
+    fs.writeFileSync(packageJsonPath, JSON.stringify(existingPackage, null, 2));
+  } else {
+    fs.writeFileSync(packageJsonPath, JSON.stringify(newPackageJson, null, 2));
   }
-}
-
-// When Electron has finished initialization
-app.whenReady().then(createWindow);
-
-// Quit when all windows are closed, except on macOS
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-// On macOS, re-create a window when the dock icon is clicked
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});`);
   
-  console.log('Created main.js in build directory');
+  console.log(`Updated package.json at ${packageJsonPath}`);
+  
+  // 3. Ensure the public directory exists in build
+  const publicDir = path.join(buildDir, 'public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+  
+  // 4. Copy icon file if it exists
+  const iconSrc = path.join(__dirname, '../public/icon.ico');
+  if (fs.existsSync(iconSrc)) {
+    const iconDest = path.join(publicDir, 'icon.ico');
+    fs.copyFileSync(iconSrc, iconDest);
+    console.log('Copied icon.ico to build directory');
+  }
+  
   console.log('Electron files prepared successfully!');
 } catch (error) {
   console.error('Error preparing Electron files:', error);
