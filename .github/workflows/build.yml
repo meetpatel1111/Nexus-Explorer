@@ -23,23 +23,52 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci
+      run: |
+        npm ci
+        npx electron-builder install-app-deps
 
     - name: Build application
-      run: npm run build
+      run: |
+        # Clean build directory
+        if (Test-Path -Path "build") { Remove-Item -Recurse -Force build }
+        New-Item -ItemType Directory -Force -Path "build" | Out-Null
+        
+        # Build React app
+        npm run build
+        
+        # Copy Electron files
+        node scripts/copy-electron.js
 
     - name: Package application
-      run: npm run build:win
+      run: |
+        # Ensure build directory exists
+        if (-not (Test-Path -Path "build/electron.js")) {
+            Write-Error "electron.js not found in build directory"
+            exit 1
+        }
+        
+        # Run electron-builder with debug info
+        $env:DEBUG = "electron-builder"
+        npx electron-builder --win --x64 --config.directories.output=dist
+
+    - name: List build artifacts
+      run: |
+        Write-Output "Build artifacts:"
+        if (Test-Path -Path "dist") {
+            Get-ChildItem -Path "dist" -Recurse | Format-Table FullName,Length,LastWriteTime
+        } else {
+            Write-Output "No dist directory found"
+        }
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
+      if: always()
       with:
-        name: NexusExplorer-Installer
+        name: NexusExplorer-Artifacts
         path: |
-          dist/*.exe
-          dist/*.exe.blockmap
-          dist/*.yml
+          dist/
         retention-days: 1
+        if-no-files-found: warn
 
     - name: Create Release
       id: create_release

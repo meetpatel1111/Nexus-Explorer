@@ -16,7 +16,7 @@
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "postbuild": "node scripts/copy-electron.js",
-    "build:win": "if not exist build mkdir build && electron-builder --win --publish never",
+    "build:win": "echo Starting Windows build... && if not exist build mkdir build && set DEBUG=electron-builder && electron-builder --win --publish never --config.extraMetadata.main=./build/electron.js --config.directories.output=dist/win",
     "dev": "concurrently \"cross-env BROWSER=none craco start\" \"wait-on http://localhost:3000 && electron . --dev\"",
     "start:react": "npx craco start",
     "build:linux": "npx craco build && electron-builder --linux",
@@ -71,7 +71,7 @@
     "productName": "Nexus Explorer",
     "copyright": "Copyright © 2025 Nexus Explorer",
     "directories": {
-      "output": "dist",
+      "output": "dist/win",
       "buildResources": "public",
       "app": "."
     },
@@ -79,7 +79,8 @@
       "main": "./build/electron.js"
     },
     "files": [
-      "build/**/*"
+      "build/**/*",
+      "package.json"
     ],
     "extraResources": [
       {
@@ -91,8 +92,9 @@
     "asar": true,
     "extends": null,
     "win": {
-      "target": "nsis",
-      "icon": "public/icon.ico"
+      "target": ["nsis", "portable"],
+      "icon": "public/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
